@@ -13,9 +13,8 @@ import torch
 from PIL import Image
 from torch import nn
 from torch.utils.data import Dataset
-
+# jai ajoute ces deux lignes :
 STRIDE = 8
-# jai ajoute ces deux lignes : 
 CLASSES = ("circle", "square", "triangle")
 NUM_CLASSES = len(CLASSES)
 def iou(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -88,26 +87,20 @@ class ShapeDataset(Dataset):
 class Detector(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        
+
         blocks = [nn.Conv2d(3, 8, kernel_size=3, stride=2, padding=1), nn.BatchNorm2d(8), nn.ReLU(),
                   nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=1), nn.BatchNorm2d(16), nn.ReLU(),
                   nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1), nn.BatchNorm2d(32), nn.ReLU()]
         self.backbone = nn.Sequential(*blocks)
         self.head = nn.Conv2d(32, 5 + NUM_CLASSES, kernel_size=1, stride=1)
-        # A_COMPLETER Aide : Définir les couches du détecteur (backbone et head).
-        
 
     def feature_maps(self, images: torch.Tensor) -> torch.Tensor:
         feature_maps = self.backbone(images)
-        # A_COMPLETER Aide : Appliquer le backbone sur les images pour obtenir les feature maps.
-        
         return feature_maps
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:
         feature_maps = self.feature_maps(images)
         output = self.head(feature_maps)
-        # A_COMPLETER Aide : Appliquer la tête sur les feature maps pour obtenir les logits de sortie.
-        
         return output
 
 
@@ -120,12 +113,12 @@ def compute_loss(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         logits[:, 0], target[:, 0], pos_weight=torch.tensor(10.0))
     positive = target[:, 0] > 0.5  # (B, G, G)
 
-    # --- boîte : canaux 1 à 4 ---
+    # boîte : canaux 1 à 4 :
     pred_box = torch.sigmoid(logits[:, 1:5]).permute(0, 2, 3, 1)[positive]
     true_box = target[:, 1:5].permute(0, 2, 3, 1)[positive]
     box_loss = nn.functional.mse_loss(pred_box, true_box)
 
-    # --- classe : canaux 5 à 7 ---
+    # classe : canaux 5 à 7 :
     pred_cls = logits[:, 5:].permute(0, 2, 3, 1)[positive]                # (N, 3) scores bruts
     true_cls = target[:, 5:].permute(0, 2, 3, 1)[positive].argmax(dim=1)  # (N,) numéro de la classe
     cls_loss = nn.functional.cross_entropy(pred_cls, true_cls)

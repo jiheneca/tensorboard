@@ -12,17 +12,17 @@ from src.detector import Detector, ShapeDataset, compute_loss, iou, predict
 
 def train(model: Detector, loader: DataLoader, optimizer: torch.optim.Optimizer) -> float:
     """Entraîne le modèle sur une époque et retourne la perte moyenne."""
-    model.train() # Permet de passer le modèle en mode entraînement (active dropout, batchnorm, etc.)
+    model.train()
     total_loss = 0.0
     for images, targets in loader:
-        optimizer.zero_grad()  # Réinitialise les gradients
-        outputs = model(images)  # Passe les images dans le modèle pour obtenir les prédictions
-        loss = compute_loss(outputs, targets)  # Calcule la perte entre les prédictions et les cibles
-        loss.backward()  # Calcule les gradients
-        optimizer.step()  # Met à jour les poids du modèle
-        total_loss += loss.item()  # Accumule la perte pour calculer la moyenne plus tard
-    # A COMPLETER Aide : Bouclez sur les images et cibles du loader, calculez la loss, 
-    # faites un backward et un step de l'optimizer.
+        optimizer.zero_grad()  
+        outputs = model(images)  
+        loss = compute_loss(outputs, targets)  
+        loss.backward()  
+        optimizer.step()  
+        total_loss += loss.item() 
+    
+    
     return total_loss / len(loader)
 
 # jai modifier ca:
